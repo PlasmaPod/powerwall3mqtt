@@ -179,10 +179,12 @@ class PowerWall3(Device):
                     if signal['name'] == f'PCH_PvState_{i}':
                         item['mode'].set(signal['textValue'])
                     elif signal['name'] == f'PCH_PvVoltage{i}':
-                        pv_voltage = round(max(signal['value'], 0), 2)
+                        val = signal['value'] if signal['value'] is not None else 0
+                        pv_voltage = round(max(val, 0), 2)
                         item['voltage'].set(pv_voltage)
                     elif signal['name'] == f'PCH_PvCurrent{i}':
-                        pv_current = round(max(signal['value'], 0), 2)
+                        val = signal['value'] if signal['value'] is not None else 0
+                        pv_current = round(max(val, 0), 2)
                         item['current'].set(pv_current)
             # Calculate power
             pv_power = pv_voltage * pv_current
@@ -251,15 +253,25 @@ class TeslaSystem(Device):
         self.battery_time_remaining = entities.Duration(device_id, "Battery Time Remaining")
         self.calibration = entities.Running(device_id, "Calibration")
         self.commission_date = entities.Timestamp(device_id, "Commission Date")
+        self.grid_charging = entities.Charging(device_id, "Grid Charging",
+                                    "grid_charging")
+        self.grid_export = entities.ValueEntity(device_id,
+                                    "Grid Export Mode",
+                                    "sensor",
+                                    "grid_export")
         self.grid_power = entities.PowerValue(device_id, "Grid Power")
         self.grid_status = entities.Connectivity(device_id, "Grid Status")
         self.inverter_capacity = entities.PowerValue(device_id, "Inverter Capacity")
         self.load_power = entities.PowerValue(device_id, "Load Power")
-        self.solar_power = entities.PowerValue(device_id, "Solar Power")
+        self.operation_mode = entities.ValueEntity(device_id,
+                                    "Operation Mode",
+                                    "sensor",
+                                    "operation_mode")
         self.real_power_config_limited = entities.ValueEntity(device_id,
                                             "Real Power Config Limited Alert",
                                             "binary_sensor",
                                             "real_power_config_limited")
+        self.solar_power = entities.PowerValue(device_id, "Solar Power")
 
         # Home Assistant template sensors
         self.battery_power_in = entities.PowerTemplate(
@@ -323,6 +335,19 @@ class TeslaSystem(Device):
         self.commission_date.set(site['battery_commission_date'])
         self.inverter_capacity.set(site['nominal_system_power_ac'] * 1000)
         self.battery_reserve_user.set(int(site['backup_reserve_percent'] * 100 / 105))
+
+        # Operation mode (self_consumption, backup, autonomous, etc.)
+        self.operation_mode.set(config.get('default_real_mode'))
+
+        # Grid charging: disallow flag is inverted - True means charging is disallowed
+        disallow_charging = site.get('disallow_charge_from_grid_with_solar_installed')
+        if disallow_charging is not None:
+            self.grid_charging.set(not disallow_charging)
+        else:
+            self.grid_charging.set(True)
+
+        # Grid export policy (battery_ok, pv_only, never)
+        self.grid_export.set(site.get('customer_preferred_export_rule'))
 
         # Map status
         self.grid_status.set("OFF")

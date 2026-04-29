@@ -108,6 +108,18 @@ class Battery(ValueEntity):
             enabled=enabled)
 
 
+class Charging(ValueEntity):
+    """Class that maps to a battery_charging binary_sensor in HA"""
+    def __init__(self, id_prefix, name, template = None, enabled = True):
+        super().__init__(
+            id_prefix=id_prefix,
+            name=name,
+            platform="binary_sensor",
+            template=template,
+            device_class="battery_charging",
+            enabled=enabled)
+
+
 class Connectivity(ValueEntity):
     """Class that maps to a Connectivity entity in HA"""
     def __init__(self, id_prefix, name, template = None, enabled = True):
