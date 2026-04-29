@@ -1,5 +1,23 @@
 # Changelog
 
+## [0.6.0] - 2026-04-29
+
+### Added
+
+- **Operation Mode sensor**: New sensor showing the current battery operation mode
+  (`self_consumption`, `backup`, `autonomous`) sourced from the gateway config.
+- **Grid Charging sensor**: New binary sensor showing whether charging from the grid
+  is currently permitted (ON = allowed, OFF = disallowed).
+- **Grid Export Mode sensor**: New sensor showing the current grid export policy
+  (`battery_ok`, `pv_only`, `never`) sourced from the gateway config.
+
+### Fixed
+
+- Fixed `TypeError` crash in `PowerWall3.update()` when `PCH_PvVoltage*` or
+  `PCH_PvCurrent*` signals are `None` on Powerwall 3 systems without solar panels.
+  Guards `None` values before performing `max()` comparisons, matching the fix
+  from [pypowerwall PR #278](https://github.com/jasonacox/pypowerwall/pull/278).
+
 ## [0.5.2] - 2025-06-09
 
 ### Fixed
@@ -139,7 +157,8 @@
 
 - [Issue #8](https://github.com/slyglif/powerwall3mqtt/issues/8): Shutdowns weren't clean, preventing relavent logs from showing
 
-[unreleased]: https://github.com/slyglif/powerwall3mqtt/compare/v0.5.2...HEAD
+[unreleased]: https://github.com/slyglif/powerwall3mqtt/compare/v0.6.0...HEAD
+[0.6.0]: https://github.com/slyglif/powerwall3mqtt/compare/v0.5.2...v0.6.0
 [0.5.2]: https://github.com/slyglif/powerwall3mqtt/compare/v0.5.1...v0.5.2
 [0.5.1]: https://github.com/slyglif/powerwall3mqtt/compare/v0.5.0...v0.5.1
 [0.5.0]: https://github.com/slyglif/powerwall3mqtt/compare/v0.4.0...v0.5.0
